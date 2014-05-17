@@ -1,9 +1,9 @@
+#!/usr/bin/env python
 # httpreplay - replay pcap files containing http requests
 # Likely broken: multiple requests per session, compression, chunked.
 # Copyright 2014 Christian Hofstaedtler.
 
-import sys
-from scapy.all import *
+from scapy.layers.inet import TCP, IP
 from scapy.utils import rdpcap
 import socket
 
@@ -190,6 +190,7 @@ def replay(streams, rewrite_dst, limit, ignore_headers, strip_cookies_list):
             stats['ok'] += 1
             print '.',
         else:
+            print
             print '*' * 70
             print "FAILED request:"
             print req
@@ -212,7 +213,7 @@ def main():
     parser.add_argument('--limit', type=int)
     parser.add_argument('--ignore-header', dest='ignore_headers', action='append')
     parser.add_argument('--strip-cookie', dest='strip_cookies', action='append', default=['PHPSESSID'])
-    parser.add_argument('file')
+    parser.add_argument('file', metavar='PCAP-FILE')
     args = parser.parse_args()
     print "Reading data from pcap file", args.file
     streams = extract_http_data(args.file)
