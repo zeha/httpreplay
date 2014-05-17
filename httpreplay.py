@@ -46,8 +46,11 @@ def interpret_http(p, is_client_packet):
     lines = p.split("\r\n")
     end_of_headers = lines.index('')
     headers = [l.split(': ', 1) for l in lines[1:end_of_headers]]
-    start_of_body = sum([len(l) + 2 for l in lines[0:end_of_headers+1]])
-    data = lines[0].split(' ', 2) + [headers, p[start_of_body:]]
+    start_of_body = sum([len(l) + 2 for l in lines[0:end_of_headers + 1]])
+    line0_fields = lines[0].split(' ', 2)
+    while len(line0_fields) < 3:
+        line0_fields.append('')
+    data = line0_fields + [headers, p[start_of_body:]]
 
     if is_client_packet:
         return HttpRequest(*data)
@@ -135,6 +138,9 @@ def send_tcp(msg, server_addr):
             if not d:
                 break
             data += d
+    except StandardError as ex:
+        print ex
+        return ''
     finally:
         sock.close()
     return data
