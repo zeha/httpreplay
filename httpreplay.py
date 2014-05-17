@@ -223,7 +223,7 @@ def main():
     parser.add_argument('--rewrite-dst')
     parser.add_argument('--limit', type=int)
     parser.add_argument('--ignore-header', dest='ignore_headers', action='append')
-    parser.add_argument('--strip-cookie', dest='strip_cookies', action='append', default=['PHPSESSID'])
+    parser.add_argument('--strip-cookie', dest='strip_cookies', action='append', default=[])
     parser.add_argument('file', metavar='PCAP-FILE')
     args = parser.parse_args()
     print "Reading data from pcap file", args.file
