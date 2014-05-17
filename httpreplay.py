@@ -6,6 +6,7 @@
 from scapy.layers.inet import TCP, IP
 from scapy.utils import rdpcap
 import socket
+import sys
 
 
 class HttpRequest(object):
@@ -203,6 +204,10 @@ def replay(streams, rewrite_dst, limit, ignore_headers, strip_cookies_list):
             break
 
     print 'Sent %d requests, OK: %d, Failed: %d' % (stats['sent'], stats['ok'], stats['sent'] - stats['ok'])
+    if stats['sent'] == stats['ok']:
+        return 0
+    else:
+        return 1
 
 
 def main():
@@ -218,11 +223,11 @@ def main():
     print "Reading data from pcap file", args.file
     streams = extract_http_data(args.file)
     if args.replay:
-        replay(streams, rewrite_dst=args.rewrite_dst, limit=args.limit, ignore_headers=args.ignore_headers,
-               strip_cookies_list=args.strip_cookies)
+        return replay(streams, rewrite_dst=args.rewrite_dst, limit=args.limit, ignore_headers=args.ignore_headers,
+                      strip_cookies_list=args.strip_cookies)
     else:
         print_http_data(streams)
-
+        return 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
