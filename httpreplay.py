@@ -4,7 +4,7 @@
 # Copyright 2014 Christian Hofstaedtler.
 
 from scapy.layers.inet import TCP, IP
-from scapy.utils import rdpcap
+from scapy.utils import PcapReader
 import socket
 import sys
 import importlib
@@ -116,8 +116,7 @@ def assemble_sessions(pkts):
 
 def extract_http_data(pcap_file):
     print "Reading", pcap_file
-    pkts = rdpcap(pcap_file)
-    for stream in assemble_sessions(pkts):
+    for stream in assemble_sessions(PcapReader(pcap_file)):
         yield convert_http_payload(stream)
 
 
