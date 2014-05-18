@@ -83,7 +83,7 @@ def convert_http_payload(pkt_list):
 def assemble_sessions(pkts):
     sessions = {}
     for pkt in pkts:
-        if not pkt[TCP]:
+        if not pkt.haslayer('TCP') or not pkt.haslayer('IP'):
             continue
         if pkt[TCP].sport != 80 and pkt[TCP].dport != 80:
             continue
