@@ -8,6 +8,7 @@ from scapy.utils import rdpcap
 import socket
 import sys
 import importlib
+import itertools
 
 
 class HttpRequest(object):
@@ -62,7 +63,6 @@ def interpret_http(p, is_client_packet):
 def convert_http_payload(pkt_list):
     last_packet_is_client_packet = None
     last_payload = None
-    interpreted = []
     for pkt in pkt_list:
         if not pkt[TCP].payload:
             continue
@@ -72,17 +72,15 @@ def convert_http_payload(pkt_list):
             last_payload += pkt.payload.load
         else:
             if last_payload is not None:
-                interpreted.append(interpret_http(last_payload, last_packet_is_client_packet))
+                yield interpret_http(last_payload, last_packet_is_client_packet)
             last_packet_is_client_packet = is_client_packet
             last_payload = pkt.payload.load
 
     if last_payload is not None:
-        interpreted.append(interpret_http(last_payload, last_packet_is_client_packet))
-
-    return interpreted
+        yield interpret_http(last_payload, last_packet_is_client_packet)
 
 
-def assemble_sessions(pkts, session_done_cb):
+def assemble_sessions(pkts):
     sessions = {}
     for pkt in pkts:
         if not pkt[TCP]:
@@ -108,24 +106,25 @@ def assemble_sessions(pkts, session_done_cb):
                 continue
 
         if pkt[TCP].flags == 17:  # RST / FIN+ACK
-            session_done_cb(sessions[session_key])
+            yield sessions[session_key]
             del sessions[session_key]
             #print session_key, 'DONE', is_client_packet, pkt[TCP].flags, pkt[TCP].payload
 
     for pkts in sessions.values():
-        session_done_cb(pkts)
+        yield pkts
 
 
 def extract_http_data(pcap_file):
+    print "Reading", pcap_file
     pkts = rdpcap(pcap_file)
-    streams = []
-    assemble_sessions(pkts, lambda session_packets: streams.append(convert_http_payload(session_packets)))
-    return streams
+    for stream in assemble_sessions(pkts):
+        yield convert_http_payload(stream)
 
 
-def print_http_data(http_data):
-    for http in http_data:
-        print repr(http)
+def print_http_data(streams):
+    for stream in streams:
+        for http in stream:
+            print repr(http)
 
 
 def send_tcp(msg, server_addr):
@@ -177,10 +176,10 @@ def replay(streams, rewrite_dst, limit, ignore_headers, strip_cookies_list, prep
     stats = {'sent': 0, 'ok': 0}
 
     for stream in streams:
-        req = stream[0]
+        req = stream.next()
         if not isinstance(req, HttpRequest):
             continue
-        orig_reply = stream[1]
+        orig_reply = stream.next()
 
         reply = interpret_http(send_tcp(req.to_payload(), rewrite_dst), False)
         stats['sent'] += 1
@@ -243,10 +242,7 @@ def main():
             func = getattr(func, component)
         args.preprocess_response = func
 
-    streams = []
-    for filename in args.files:
-        print "Reading data from pcap file", filename
-        streams = streams + extract_http_data(filename)
+    streams = itertools.chain(*map(lambda fn: extract_http_data(fn), args.files))
 
     if args.replay:
         return replay(streams, rewrite_dst=args.rewrite_dst, limit=args.limit, ignore_headers=args.ignore_headers,
