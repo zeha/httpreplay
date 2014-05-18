@@ -223,8 +223,7 @@ def replay(streams, rewrite_dst, limit, ignore_headers, strip_cookies_list, prep
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--replay', action='store_true')
-    parser.add_argument('--rewrite-dst')
+    parser.add_argument('--replay', metavar='DEST_HOST:PORT')
     parser.add_argument('--limit', type=int)
     parser.add_argument('--ignore-header', dest='ignore_headers', action='append')
     parser.add_argument('--strip-cookie', dest='strip_cookies', action='append', default=[])
@@ -244,7 +243,7 @@ def main():
     streams = itertools.chain(*map(lambda fn: extract_http_data(fn), args.files))
 
     if args.replay:
-        return replay(streams, rewrite_dst=args.rewrite_dst, limit=args.limit, ignore_headers=args.ignore_headers,
+        return replay(streams, rewrite_dst=args.replay, limit=args.limit, ignore_headers=args.ignore_headers,
                       strip_cookies_list=args.strip_cookies, preprocess_response=args.preprocess_response)
     else:
         print_http_data(streams)

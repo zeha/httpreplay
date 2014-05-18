@@ -12,7 +12,7 @@ Replay data from file `http1.pcap` to server on `localhost:8402`, while
 ignoring a few headers and dropping the value of the cookie named `PHPSESSID`:
 
 ```
-./httpreplay.py --replay --rewrite-dst localhost:8402 \
+./httpreplay.py --replay localhost:8402 \
   --ignore-header x-powered-by --ignore-header date \
   --ignore-header server --ignore-header connection \
   --ignore-header content-length --strip-cookie PHPSESSID \
@@ -23,7 +23,7 @@ Use an external preprocess function named `preprocess` from a module called
 `example_preprocess` to preprocess responses for replay comparison:
 
 ```
-./httpreplay.py --replay --rewrite-dst localhost:8402 \
+./httpreplay.py --replay localhost:8402 \
   --load example_preprocess \
   --preprocess-response example_preprocess.preprocess \
   http2.pcap
