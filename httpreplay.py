@@ -232,7 +232,7 @@ def main():
     parser.add_argument('--strip-cookie', dest='strip_cookies', action='append', default=[])
     parser.add_argument('--load', help='Load extension module')
     parser.add_argument('--preprocess-response', help='Preprocess response using FUNCTION', metavar='FUNCTION')
-    parser.add_argument('file', metavar='PCAP-FILE')
+    parser.add_argument('files', metavar='PCAP-FILE', nargs='+')
     args = parser.parse_args()
 
     if args.load:
@@ -243,14 +243,18 @@ def main():
             func = getattr(func, component)
         args.preprocess_response = func
 
-    print "Reading data from pcap file", args.file
-    streams = extract_http_data(args.file)
+    streams = []
+    for filename in args.files:
+        print "Reading data from pcap file", filename
+        streams = streams + extract_http_data(filename)
+
     if args.replay:
         return replay(streams, rewrite_dst=args.rewrite_dst, limit=args.limit, ignore_headers=args.ignore_headers,
                       strip_cookies_list=args.strip_cookies, preprocess_response=args.preprocess_response)
     else:
         print_http_data(streams)
         return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
