@@ -19,6 +19,17 @@ ignoring a few headers and dropping the value of the cookie named `PHPSESSID`:
   http1.pcap
 ```
 
+Use an external preprocess function named `preprocess` from a module called
+`example_preprocess` to preprocess responses for replay comparison:
+
+```
+./httpreplay.py --replay --rewrite-dst localhost:8402 \
+  --load example_preprocess \
+  --preprocess-response example_preprocess.preprocess \
+  http2.pcap
+```
+
+
 Prerequisites
 -------------
 

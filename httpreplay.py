@@ -7,6 +7,7 @@ from scapy.layers.inet import TCP, IP
 from scapy.utils import rdpcap
 import socket
 import sys
+import importlib
 
 
 class HttpRequest(object):
@@ -160,7 +161,7 @@ def strip_cookies(h, cookie_list):
     return h
 
 
-def replay(streams, rewrite_dst, limit, ignore_headers, strip_cookies_list):
+def replay(streams, rewrite_dst, limit, ignore_headers, strip_cookies_list, preprocess_response=None):
     rewrite_dst = rewrite_dst.split(':')
     if len(rewrite_dst) == 1:
         rewrite_dst = (rewrite_dst, 80)
@@ -186,6 +187,11 @@ def replay(streams, rewrite_dst, limit, ignore_headers, strip_cookies_list):
 
         reply.headers = sorted(reply.headers)
         orig_reply.headers = sorted(orig_reply.headers)
+
+        if preprocess_response is not None:
+            reply = preprocess_response(reply)
+            orig_reply = preprocess_response(orig_reply)
+
         # we ignore reply headers for now
         same = \
             (reply.code == orig_reply.code) and (reply.status == orig_reply.status) and \
@@ -224,13 +230,24 @@ def main():
     parser.add_argument('--limit', type=int)
     parser.add_argument('--ignore-header', dest='ignore_headers', action='append')
     parser.add_argument('--strip-cookie', dest='strip_cookies', action='append', default=[])
+    parser.add_argument('--load', help='Load extension module')
+    parser.add_argument('--preprocess-response', help='Preprocess response using FUNCTION', metavar='FUNCTION')
     parser.add_argument('file', metavar='PCAP-FILE')
     args = parser.parse_args()
+
+    if args.load:
+        importlib.import_module(args.load)
+    if args.preprocess_response:
+        func = sys.modules[args.preprocess_response.split('.')[0]]
+        for component in args.preprocess_response.split('.')[1:]:
+            func = getattr(func, component)
+        args.preprocess_response = func
+
     print "Reading data from pcap file", args.file
     streams = extract_http_data(args.file)
     if args.replay:
         return replay(streams, rewrite_dst=args.rewrite_dst, limit=args.limit, ignore_headers=args.ignore_headers,
-                      strip_cookies_list=args.strip_cookies)
+                      strip_cookies_list=args.strip_cookies, preprocess_response=args.preprocess_response)
     else:
         print_http_data(streams)
         return 0
