@@ -30,6 +30,23 @@ Use an external preprocess function named `preprocess` from a module called
 ```
 
 
+Input file preparation
+----------------------
+
+The input file must be in `pcap` format. Wireshark and tshark use `pcapng`,
+so their output files need to be converted.
+
+Also, the input file should not contain retransmissions.
+
+This `tshark` command line turns any understood file into a `pcap` file
+and skips retransmitted packets:
+
+```
+tshark -n -F pcap -Y '!tcp.analysis.retransmission and !tcp.analysis.out_of_order' \
+-r in.pcap -w out.pcap
+```
+
+
 Prerequisites
 -------------
 
