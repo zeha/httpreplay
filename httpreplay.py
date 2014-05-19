@@ -222,11 +222,11 @@ def replay(streams, rewrite_dst, limit, ignore_headers, strip_cookies_list, prep
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Replay HTTP sessions from PCAP files")
     parser.add_argument('--replay', metavar='DEST_HOST:PORT')
-    parser.add_argument('--limit', type=int)
-    parser.add_argument('--ignore-header', dest='ignore_headers', action='append')
-    parser.add_argument('--strip-cookie', dest='strip_cookies', action='append', default=[])
+    parser.add_argument('--limit', type=int, help='Stop after LIMIT packets')
+    parser.add_argument('--ignore-header', metavar='HEADER_NAME', dest='ignore_headers', action='append')
+    parser.add_argument('--strip-cookie', metavar='COOKIE_NAME', dest='strip_cookies', action='append', default=[])
     parser.add_argument('--load', help='Load extension module')
     parser.add_argument('--preprocess-response', help='Preprocess response using FUNCTION', metavar='FUNCTION')
     parser.add_argument('files', metavar='PCAP-FILE', nargs='+')
