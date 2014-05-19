@@ -105,7 +105,7 @@ def assemble_sessions(pkts):
                 #print session_key, 'dropping packet', pkt[TCP].payload
                 continue
 
-        if pkt[TCP].flags == 17:  # RST / FIN+ACK
+        if pkt[TCP].flags == 17:  # FIN+ACK
             yield sessions[session_key]
             del sessions[session_key]
             #print session_key, 'DONE', is_client_packet, pkt[TCP].flags, pkt[TCP].payload
