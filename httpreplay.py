@@ -178,10 +178,10 @@ def replay(streams, rewrite_dst, limit, ignore_headers, strip_cookies_list, prep
     stats = {'sent': 0, 'ok': 0}
 
     for stream in streams:
-        req = stream.next()
-        if not isinstance(req, HttpRequest):
+        req = next(stream, None)
+        orig_reply = next(stream, None)
+        if not isinstance(req, HttpRequest) or not isinstance(orig_reply, HttpResponse):
             continue
-        orig_reply = stream.next()
 
         reply = interpret_http(send_tcp(req.to_payload(), rewrite_dst), False)
         stats['sent'] += 1
