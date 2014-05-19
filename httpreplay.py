@@ -109,6 +109,8 @@ def assemble_sessions(pkts):
             yield sessions[session_key]
             del sessions[session_key]
             #print session_key, 'DONE', is_client_packet, pkt[TCP].flags, pkt[TCP].payload
+        if pkt[TCP].flags == 4:  # RST
+            del sessions[session_key]
 
     for pkts in sessions.values():
         yield pkts
