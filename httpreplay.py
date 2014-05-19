@@ -112,8 +112,9 @@ def assemble_sessions(pkts):
         if pkt[TCP].flags == 4:  # RST
             del sessions[session_key]
 
-    for pkts in sessions.values():
-        yield pkts
+    # Sessions where we did not see the FIN+ACK packet are incomplete, and are left in "sessions".
+    # We skip incomplete sessions.
+    return
 
 
 def extract_http_data(pcap_file):
