@@ -1,7 +1,7 @@
 httpreplay
 ==========
 
-Replay HTTP requests from previously captures pcap files.
+Replay HTTP requests from previously captured pcap files.
 
 Run `./httpreplay.py --help` for rudimentary help.
 
